@@ -161,6 +161,14 @@ SECTIONS
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
+  
+  ._threadx_heap :
+  {
+     . = ALIGN(8);
+     __RAM_segment_used_end__ = .;
+     . = . + 64K;
+     . = ALIGN(8);
+   } >RAM_D1 AT> RAM_D1
 
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack :

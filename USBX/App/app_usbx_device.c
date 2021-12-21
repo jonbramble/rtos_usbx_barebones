@@ -50,7 +50,7 @@ UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm_parameter;
 
 /* Define constants.  */
 #define USBX_APP_STACK_SIZE 1024
-#define USBX_MEMORY_SIZE (50 * 1024)
+#define USBX_MEMORY_SIZE (15 * 1024)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
