@@ -21,6 +21,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "app_threadx.h"
 
+#include "main.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -48,7 +50,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
+void MsgReceiverThread_Entry(ULONG thread_input);
 /* USER CODE END PFP */
 
 /**
@@ -62,6 +64,37 @@ UINT App_ThreadX_Init(VOID *memory_ptr) {
 
   /* USER CODE BEGIN App_ThreadX_Init */
   (void)byte_pool;
+
+  CHAR *pointer;
+
+  /* Allocate the MsgQueueOne.  */
+  if (tx_byte_allocate(byte_pool, (VOID **)&pointer,
+                       APP_QUEUE_SIZE * sizeof(ULONG),
+                       TX_NO_WAIT) != TX_SUCCESS) {
+    ret = TX_POOL_ERROR;
+  }
+
+  // Create the queue
+  if (tx_queue_create(&MsgQueueOne, "Message Queue One", TX_1_ULONG, pointer,
+                      APP_QUEUE_SIZE * sizeof(ULONG)) != TX_SUCCESS) {
+    ret = TX_QUEUE_ERROR;
+  }
+
+  /* Allocate the stack for MsgReceiverThread.  */
+  if (tx_byte_allocate(byte_pool, (VOID **)&pointer, APP_STACK_SIZE,
+                       TX_NO_WAIT) != TX_SUCCESS) {
+    ret = TX_POOL_ERROR;
+  }
+
+  /* Create MsgReceiverThread.  */
+  if (tx_thread_create(&MsgReceiverThread, "Message Queue Receiver Thread",
+                       MsgReceiverThread_Entry, 0, pointer, APP_STACK_SIZE,
+                       RECEIVER_THREAD_PRIO,
+                       RECEIVER_THREAD_PREEMPTION_THRESHOLD, TX_NO_TIME_SLICE,
+                       TX_AUTO_START) != TX_SUCCESS) {
+    ret = TX_THREAD_ERROR;
+  }
+
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
@@ -90,4 +123,25 @@ void App_Delay(ULONG Delay) {
   while ((tx_time_get() - initial_time) < Delay)
     ;
 }
+
+void MsgReceiverThread_Entry(ULONG thread_input) {
+  ULONG RMsg = 0;
+  UINT status = 0;
+  (void)thread_input;
+  /* Infinite loop */
+  while (1) {
+    status = tx_queue_receive(&MsgQueueOne, &RMsg, TX_NO_WAIT);
+    if (status == TX_SUCCESS) {
+      /* Check Message value */
+      if (RMsg != 1) {
+        Error_Handler();
+      } else {
+        HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+        App_Delay(2);
+        HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+      }
+    }
+  }
+}
+
 /* USER CODE END 1 */

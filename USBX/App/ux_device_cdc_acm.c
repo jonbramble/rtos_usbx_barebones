@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_threadx.h"
 #include "app_usbx_device.h"
 #include "main.h"
 /* USER CODE END Includes */
@@ -292,19 +293,11 @@ void usbx_cdc_acm_read_thread_entry(ULONG arg) {
             Error_Handler();
           }
 
-          //          ULONG new_length = 0;
-          //
-          //          // echo back to USB too here
-          //          UINT status = ux_device_class_cdc_acm_write(
-          //              cdc_acm, (UCHAR *)UserRxBufferFS, actual_length,
-          //              &new_length);
-          //
-          //          if (status != UX_SUCCESS) {
-          //            Error_Handler();
-          //          }
+          // look at buffer for strings?
+
           ULONG Msg = 1;
-          if (tx_queue_send(&MsgQueueOne, &Msg, TX_WAIT_FOREVER) !=
-              TX_SUCCESS) {
+          ULONG ret = tx_queue_send(&MsgQueueOne, &Msg, TX_WAIT_FOREVER);
+          if (ret != TX_SUCCESS) {
             Error_Handler();
           }
 

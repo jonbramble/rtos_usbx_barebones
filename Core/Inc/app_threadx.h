@@ -30,7 +30,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+TX_QUEUE MsgQueueOne;
+TX_THREAD MsgReceiverThread;
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -40,7 +41,10 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define APP_QUEUE_SIZE 10
+#define APP_STACK_SIZE 512
+#define RECEIVER_THREAD_PRIO 30
+#define RECEIVER_THREAD_PREEMPTION_THRESHOLD RECEIVER_THREAD_PRIO
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
