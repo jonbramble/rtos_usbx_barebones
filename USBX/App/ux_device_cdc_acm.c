@@ -292,6 +292,22 @@ void usbx_cdc_acm_read_thread_entry(ULONG arg) {
             Error_Handler();
           }
 
+          //          ULONG new_length = 0;
+          //
+          //          // echo back to USB too here
+          //          UINT status = ux_device_class_cdc_acm_write(
+          //              cdc_acm, (UCHAR *)UserRxBufferFS, actual_length,
+          //              &new_length);
+          //
+          //          if (status != UX_SUCCESS) {
+          //            Error_Handler();
+          //          }
+          ULONG Msg = 1;
+          if (tx_queue_send(&MsgQueueOne, &Msg, TX_WAIT_FOREVER) !=
+              TX_SUCCESS) {
+            Error_Handler();
+          }
+
           /* Wait until the requested flag TX_NEW_TRANSMITTED_DATA is received
            */
           if (tx_event_flags_get(&EventFlag, TX_NEW_TRANSMITTED_DATA,

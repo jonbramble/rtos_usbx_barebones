@@ -36,6 +36,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern TX_EVENT_FLAGS_GROUP EventFlag;
+TX_QUEUE MsgQueueOne;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

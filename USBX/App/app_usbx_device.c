@@ -51,6 +51,7 @@ UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm_parameter;
 /* Define constants.  */
 #define USBX_APP_STACK_SIZE 1024
 #define USBX_MEMORY_SIZE (15 * 1024)
+#define APP_QUEUE_SIZE 10
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,14 +69,13 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 void usbx_app_thread_entry(ULONG arg);
 /* USER CODE END PFP */
 /**
-  * @brief  Application USBX Device Initialization.
-  * @param memory_ptr: memory pointer
-  * @retval int
-  */
-UINT MX_USBX_Device_Init(VOID *memory_ptr)
-{
+ * @brief  Application USBX Device Initialization.
+ * @param memory_ptr: memory pointer
+ * @retval int
+ */
+UINT MX_USBX_Device_Init(VOID *memory_ptr) {
   UINT ret = UX_SUCCESS;
-  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
+  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL *)memory_ptr;
 
   /* USER CODE BEGIN MX_USBX_Device_MEM_POOL */
 
