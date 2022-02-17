@@ -43,8 +43,6 @@ TX_THREAD ux_app_thread;
 TX_THREAD ux_cdc_read_thread;
 TX_THREAD ux_cdc_write_thread;
 
-TX_EVENT_FLAGS_GROUP EventFlag;
-
 /* CDC Class Calling Parameter structure */
 UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm_parameter;
 
@@ -211,11 +209,6 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr) {
   /* Check usbx_cdc_acm_write_thread_entry creation */
   if (UX_SUCCESS != tx_status) {
     Error_Handler();
-  }
-
-  /* Create the event flags group. */
-  if (tx_event_flags_create(&EventFlag, "Event Flag") != TX_SUCCESS) {
-    ret = TX_GROUP_ERROR;
   }
 
   /* USER CODE END MX_USBX_Device_Init */

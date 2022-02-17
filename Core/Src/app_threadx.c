@@ -108,6 +108,11 @@ UINT App_ThreadX_Init(VOID *memory_ptr) {
     ret = TX_THREAD_ERROR;
   }
 
+  /* Create the event flags group. */
+  if (tx_event_flags_create(&EventFlag, "Event Flag") != TX_SUCCESS) {
+    ret = TX_GROUP_ERROR;
+  }
+
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
@@ -161,20 +166,27 @@ void MsgReceiverThread_Entry(ULONG thread_input) {
     }
 
     if (enqueued > 0) {
-      // read all of queue, look for line termination
+      // read all of queue, look for line termination char
       for (ULONG m = 0; m < enqueued; m++) {
         status = tx_queue_receive(&MsgQueueOne, &RMsg, TX_NO_WAIT);
 
-        if (RMsg != '\n') {
-          TMsg = (CHAR)RMsg;
+        if (status == TX_SUCCESS && RMsg != '\n') {
+          TMsg = toupper((CHAR)RMsg);
           tx_queue_send(&MsgQueueTwo, &TMsg,
                         TX_NO_WAIT);  // TX_WAIT_FOREVER or not?
 
         } else {
+          // flash light
           HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
           App_Delay(3);
           HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
           App_Delay(3);
+
+          // set flag that a message has been received in full
+          if (tx_event_flags_set(&EventFlag, RX_NEW_RECEIVED_DATA, TX_OR) !=
+              TX_SUCCESS) {
+            Error_Handler();
+          }
         }
       }
     }

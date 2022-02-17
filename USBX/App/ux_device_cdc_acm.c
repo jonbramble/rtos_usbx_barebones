@@ -35,12 +35,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define APP_RX_DATA_SIZE 2048
-#define APP_TX_DATA_SIZE 2048
-
-/* Rx/TX flag */
-#define RX_NEW_RECEIVED_DATA 0x01
-#define TX_NEW_TRANSMITTED_DATA 0x02
+#define APP_RX_DATA_SIZE 1024
+#define APP_TX_DATA_SIZE 1024
 
 /* Data length for vcp */
 #define VCP_WORDLENGTH8 8
@@ -277,6 +273,15 @@ void usbx_cdc_acm_write_thread_entry(ULONG arg) {
   ULONG buffsize;
   UINT ux_status = UX_SUCCESS;
 
+  ULONG RMsg = 0;
+  UINT status = 0;
+  CHAR *name;
+  ULONG enqueued;
+  ULONG available_storage;
+  TX_THREAD *first_suspended;
+  ULONG suspended_count;
+  TX_QUEUE *next_queue;
+
   while (1) {
     /* Wait until the requested flag RX_NEW_RECEIVED_DATA is received */
     if (tx_event_flags_get(&EventFlag, RX_NEW_RECEIVED_DATA, TX_OR_CLEAR,
@@ -296,34 +301,25 @@ void usbx_cdc_acm_write_thread_entry(ULONG arg) {
 
     cdc_acm->ux_slave_class_cdc_acm_transmission_status = UX_FALSE;
 
-    /* Check if there is a new data to send */
-    if (UserTxBufPtrOut != UserTxBufPtrIn) {
-      /* Check buffer overflow and Rollback */
-      if (UserTxBufPtrOut > UserTxBufPtrIn) {
-        buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
-      } else {
-        /* Calculate data size */
-        buffsize = UserTxBufPtrIn - UserTxBufPtrOut;
-      }
+    // read from message queue, copy to output buffer and send
 
-      /* Copy UserTxBufPtrOut in buffptr */
-      buffptr = UserTxBufPtrOut;
+    status =
+        tx_queue_info_get(&MsgQueueTwo, &name, &enqueued, &available_storage,
+                          &first_suspended, &suspended_count, &next_queue);
 
-      /* Send data over the class cdc_acm_write */
-      ux_status = ux_device_class_cdc_acm_write(
-          cdc_acm, (UCHAR *)(&UserTxBufferFS[buffptr]), buffsize,
-          &actual_length);
+    for (ULONG m = 0; m < enqueued; m++) {
+      status = tx_queue_receive(&MsgQueueTwo, &RMsg, TX_NO_WAIT);
+      UserTxBufferFS[m] = RMsg;
+    }
+    UserTxBufferFS[enqueued] = '\n';  // add line termination character
 
-      /* Check if dataset is correctly transmitted */
-      if (ux_status == UX_SUCCESS) {
-        /* Increment the UserTxBufPtrOut pointer */
-        UserTxBufPtrOut += buffsize;
+    // more buffer checking here
 
-        /* Rollback UserTxBufPtrOut if it equal to APP_TX_DATA_SIZE */
-        if (UserTxBufPtrOut == APP_TX_DATA_SIZE) {
-          UserTxBufPtrOut = 0;
-        }
-      }
+    ux_status = ux_device_class_cdc_acm_write(
+        cdc_acm, (UCHAR *)(&UserTxBufferFS[0]), enqueued + 1, &actual_length);
+
+    if (ux_status != UX_SUCCESS) {
+      Error_Handler();
     }
   }
 }

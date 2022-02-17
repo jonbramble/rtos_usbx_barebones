@@ -33,6 +33,12 @@ extern "C" {
 TX_QUEUE MsgQueueOne;
 TX_QUEUE MsgQueueTwo;
 TX_THREAD MsgReceiverThread;
+
+/* Rx/TX flag */
+#define RX_NEW_RECEIVED_DATA 0x01
+#define TX_NEW_TRANSMITTED_DATA 0x02
+
+TX_EVENT_FLAGS_GROUP EventFlag;
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
