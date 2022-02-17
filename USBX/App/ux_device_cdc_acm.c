@@ -273,10 +273,10 @@ void usbx_cdc_acm_write_thread_entry(ULONG arg) {
   ULONG buffsize;
   UINT ux_status = UX_SUCCESS;
 
-  ULONG RMsg = 0;
+  ULONG msg = 0;
   UINT status = 0;
   CHAR *name;
-  ULONG enqueued;
+  ULONG enqueued = 0;
   ULONG available_storage;
   TX_THREAD *first_suspended;
   ULONG suspended_count;
@@ -303,23 +303,24 @@ void usbx_cdc_acm_write_thread_entry(ULONG arg) {
 
     // read from message queue, copy to output buffer and send
 
+    // more buffer checking here
+
     status =
         tx_queue_info_get(&MsgQueueTwo, &name, &enqueued, &available_storage,
                           &first_suspended, &suspended_count, &next_queue);
 
-    for (ULONG m = 0; m < enqueued; m++) {
-      status = tx_queue_receive(&MsgQueueTwo, &RMsg, TX_NO_WAIT);
-      UserTxBufferFS[m] = RMsg;
-    }
-    UserTxBufferFS[enqueued] = '\n';  // add line termination character
+    if (status == TX_SUCCESS) {
+      for (ULONG m = 0; m < enqueued; m++) {
+        status = tx_queue_receive(&MsgQueueTwo, &msg, TX_NO_WAIT);
+        UserTxBufferFS[m] = msg;
+      }
 
-    // more buffer checking here
+      ux_status = ux_device_class_cdc_acm_write(
+          cdc_acm, (UCHAR *)(&UserTxBufferFS), enqueued, &actual_length);
 
-    ux_status = ux_device_class_cdc_acm_write(
-        cdc_acm, (UCHAR *)(&UserTxBufferFS[0]), enqueued + 1, &actual_length);
-
-    if (ux_status != UX_SUCCESS) {
-      Error_Handler();
+      if (ux_status != UX_SUCCESS) {
+        Error_Handler();
+      }
     }
   }
 }

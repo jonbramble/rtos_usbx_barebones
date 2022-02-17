@@ -182,7 +182,11 @@ void MsgReceiverThread_Entry(ULONG thread_input) {
           HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
           App_Delay(3);
 
-          // set flag that a message has been received in full
+          TMsg = '\n';  // add termination character here
+          tx_queue_send(&MsgQueueTwo, &TMsg, TX_NO_WAIT);
+
+          // set flag that a message has been received in full - this then
+          // allows the write queue to go
           if (tx_event_flags_set(&EventFlag, RX_NEW_RECEIVED_DATA, TX_OR) !=
               TX_SUCCESS) {
             Error_Handler();
